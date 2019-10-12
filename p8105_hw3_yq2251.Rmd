@@ -9,6 +9,7 @@ library(tidyverse)
 library(ggridges)
 library(patchwork)
 library(knitr)
+library(tidyr)
 ```
 
 ## Problem 1
@@ -16,6 +17,9 @@ library(knitr)
 library(p8105.datasets)
 data("instacart")
 ```
+
+**This instacart dataset contains 1,384,617 entries within 15 total columns.Some key variables include "asile" as a product category, "order_hour_of_day" which recognize people's ordering preferance in the time of a day.
+
 
 ## count how many aisles there are
 ```{r}
@@ -32,7 +36,8 @@ instacart %>%
 filter(min_rank(desc(aisle_n)) < 2)
 
 ```
-There are 134 aisles in total, with "fresh vegetables" as the aisle with most items ordered from (n=150609).
+
+**There are 134 aisles in total, with "fresh vegetables" as the aisle with most items ordered from (n=150609).
 
 
 
@@ -54,18 +59,27 @@ ggplot(aes(x=aisle, y=aisle_n)) +
   )
 ```
 
-## make a table for 3 most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”
+**In the bar chart title "Ordering by asile plot", x-axis is the 39 aisle names with more than 10000 items ordered, y-axis is the number of items ordered in each aisle with 50000 as a break.
+
+
+
+
+## make a table for 3 most popular items in each of the 3 aisles 
 ```{r}
 instacart %>%
   filter(aisle == c("baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
   group_by(aisle, product_name) %>% 
-  summarize(aisle_n_product = n())%>%
-  filter(min_rank(desc(aisle_n_product)) < 4)%>%
+  summarize(product_count = n())%>%
+  filter(min_rank(desc(product_count)) < 4)%>%
   knitr::kable(digits = 0)
 ```
 
+**The three most popular items in "baking ingredients" aisle are Light Brown Sugar,Organic Vanilla Extract and Pure Baking Soda. The three most popular items in "dog food care" aisle are Organix Chicken & Brown Rice Recipe, Organix Grain Free Chicken & Vegetable Dog Food and Original Dry Dog. The three most popular items in "packaged vegetables fruits" aisle are Organic Baby Spinach, Organic Blueberries and Organic Raspberries. "Product_count" indicates number of products ordered for each product name.
 
-## Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table)
+
+
+
+## Make a table showing the mean hour of the day 
 ```{r}
 instacart %>%
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
@@ -78,6 +92,110 @@ instacart %>%
   knitr::kable(digits = 0)
 ```
 
+** This 2*7 table shows the mean hour of the day in the week when Pink Lady Apples and Coffee Ice Cream were ordered. According to the table, Coffee Ice Cream were usually purchased later in the day compared to Pink Lady Apples, which fits the general trend that vege/fruits are usually ordered earlier i the day comparing to ice cream/pizza.
+
+
+
+
+
+
+
 
 ## problem 2
+```{r}
+library(p8105.datasets)
+data("brfss_smart2010")
+```
+
+## clean the dataset
+```{r}
+data("brfss_smart2010")
+brfss_new=
+  filter(brfss_smart2010,Topic=="Overall Health")%>%
+  janitor::clean_names() %>%
+  rename("state"=locationabbr)%>%
+  mutate(
+    response=as.factor(response),
+    response = forcats::fct_relevel(response, c("Poor","Fair","Good", "Very good","Excellent")))
+```
+
+
+## In 2002, which states were observed at 7 or more locations? What about in 2010?
+```{r}
+brfss_new %>%
+  filter(year == 2002)%>%
+  group_by(state)%>%
+ summarize(n_location=n_distinct(locationdesc), no.rm=FALSE)%>%
+  filter(n_location>=7)%>%
+  knitr::kable()
+```
+
+*In 2002, state CT,FL,MA,NC,NJ,PA have 7 or more locations recorded.
+
+
+
+```{r}
+brfss_new %>%
+  filter(year == 2010)%>%
+  group_by(state)%>%
+ summarize(n_location=n_distinct(locationdesc), no.rm=FALSE)%>%
+  filter(n_location>=7)%>%
+  knitr::kable()
+```
+
+*In 2010, state CA,CO,FL,MA,MD,NC,NE,NJ,NY,OH,PA,SC,TX,WA have 7 or more locations recorded.
+
+
+
+## Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value.
+```{r}
+brfss_excellent=
+  filter(brfss_new, response == "Excellent")%>%
+  group_by(year,state)%>%
+  mutate(mean=mean(data_value, na.rm=FALSE, digits=2))%>%
+  select(year,state,mean)%>%
+  distinct()
+```
+
+*In this newly created dataset "brfss_excellent", there are 443 entries within 3 total columns, ranging from year 2002-2010.
+
+
+
+## create the spaghetti plot of this average value over time within a state
+```{r}
+brfss_excellent %>%
+  ggplot(aes(x=year,y=mean, color=state)) + 
+    geom_line()+
+  labs(
+    title = "Average value over time for states plot",
+    x = "year",
+    y = "mean value",
+    caption = "Data from the BRFSS package"
+  ) +
+  theme(legend.position = "left")
+```
+
+* For this spaghetti graph, x-axis is year, y-axis is the mean value of data_value with different colors represent different states.
+
+
+
+
+## Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State
+
+```{r}
+brfss_new %>%
+  filter(state == "NY", year %in% c(2006,2010))%>%
+ggplot(aes(x = response, y = data_value, color=response)) + 
+  geom_boxplot()+
+   theme(text = element_text(size=12),
+         axis.text.x = element_text(angle=90, vjust=0.5))+
+  facet_grid(. ~ year)
+```
+
+*I choose to use a boxplot because it can show the distribution of data_value clearly. The general trend of responses distribution is similar between year 2006 and 2010. In year 2010, there were more "very good" response" than "good" response comparing to 2006.
+
+
+
+
+
 
