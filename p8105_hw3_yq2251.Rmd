@@ -60,7 +60,7 @@ ggplot(aes(x=aisle, y=aisle_n)) +
   )
 ```
 
-**In the bar chart title "Ordering by asile plot", x-axis is the 39 aisle names with more than 10000 items ordered, y-axis is the number of items ordered in each aisle with 50000 as a break.
+**In the bar chart title "Ordering by asile plot", x-axis is the 39 aisle names with more than 10000 items ordered, y-axis is the number of items ordered in each aisle with 50000 as a break. "Fresh vegetables" and "fresh fruits" are two outliers that were ordered a lot more times comparing to other products. Consumers prefer to order fruits and vegetables online.
 
 
 
@@ -75,7 +75,7 @@ instacart %>%
   knitr::kable(digits = 0)
 ```
 
-**The three most popular items in "baking ingredients" aisle are Light Brown Sugar,Organic Vanilla Extract and Pure Baking Soda. The three most popular items in "dog food care" aisle are Organix Chicken & Brown Rice Recipe, Organix Grain Free Chicken & Vegetable Dog Food and Original Dry Dog. The three most popular items in "packaged vegetables fruits" aisle are Organic Baby Spinach, Organic Blueberries and Organic Raspberries. "Product_count" indicates number of products ordered for each product name.
+**The three most popular items in "baking ingredients" aisle are Light Brown Sugar,Organic Vanilla Extract and Pure Baking Soda. The three most popular items in "dog food care" aisle are Organix Chicken & Brown Rice Recipe, Organix Grain Free Chicken & Vegetable Dog Food and Original Dry Dog. The three most popular items in "packaged vegetables fruits" aisle are Organic Baby Spinach, Organic Blueberries and Organic Raspberries. "Product_count" indicates number of products ordered for each product name."Product_count" listed how many orders had been placed. Packaged vegetables fruits are much more popular than other two aisles.
 
 
 
