@@ -10,6 +10,7 @@ library(ggridges)
 library(patchwork)
 library(knitr)
 library(tidyr)
+library(readxl)
 ```
 
 ## Problem 1
@@ -195,6 +196,63 @@ ggplot(aes(x = response, y = data_value, color=response)) +
 *I choose to use a boxplot because it can show the distribution of data_value clearly. The general trend of responses distribution is similar between year 2006 and 2010. In year 2010, there were more "very good" response" than "good" response comparing to 2006.
 
 
+
+
+
+## problem 3
+
+## clean the data with a weekday vs weekend variable
+```{r}
+accel=read_csv("data/accel_data.csv")%>%
+ janitor::clean_names()%>%
+  mutate(day = as.factor(day),
+         day = forcats::fct_relevel(day, c("Sunday","Monday","Tuesday", "Wednesday","Thursday", "Friday", "Saturday"))) %>%
+  mutate(daytype = case_when(
+    day %in% c("Sunday","Saturday") ~ "weekend",
+    day %in% c("Monday","Tuesday","Wednesday","Thursday","Friday") ~ "weekday"))%>%
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "time",
+    names_prefix = "activity_",
+    values_to = "activity"
+  )
+  mutate(accel, time = as.numeric(time))
+```
+
+*This dataset contains 1444 total columns with 35 entries.Variables include week, day_id, day and daytype, and activities 1-1440. "daytype" indicates whether the day of the week is weekend or weekday.
+
+
+## create daily total activity table
+```{r}
+accel%>%
+  group_by(week,day, day_id) %>%
+  summarize(Sum=sum(activity))%>%
+  knitr::kable()
+```
+
+* In the newly created table, there are 35 rows with 4 columns. Variable"sum" indicates the total amount of activity each day. Variable "week" indicates which week is that specific day.The days are arranged from Sunday to Saturday. There is no apparent trend can be found from the table.
+
+
+## create signle panel plot for 24-hour activity time courses for each day 
+
+```{r}
+accel_new = 
+  accel %>%
+  group_by(week,day, day_id) %>%
+  summarize(Sum=sum(activity))
+
+accel_new <- tibble::rowid_to_column(accel_new, "ID1")
+```
+
+```{r}
+accel_new%>%
+ ggplot(aes(x = day_id, y = Sum)) +
+  geom_point(aes(color = day), alpha = .5)+
+   geom_smooth(se = FALSE)
+
+```
+
+*According to the plot, majority of the person's daily activity summation is around 400000, with couple Saturdays when there is nearly none activities(sum of activity 1440). The maximum daily activity occurred on a Monday with nearly 700000. Since I order the data based on the real days happening, the person's daily activity has a treand to increase at the beginning of the month, then decreased, and finally increased again.
 
 
 
